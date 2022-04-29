@@ -13,7 +13,7 @@ https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises
 https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/calling-services-asynchronously.html
 https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-handler.html 
 */
-exports.main = async function(event, context) {
+exports.main = async function (event, context) {
   try {
     var method = event.httpMethod;
     // Get name, if present
@@ -24,7 +24,7 @@ exports.main = async function(event, context) {
       if (event.path === "/") {
         const data = await S3.listObjectsV2({ Bucket: bucketName }).promise();
         var body = {
-          widgets: data.Contents.map(function(e) { return e.Key })
+          widgets: data.Contents.map(function (e) { return e.Key })
         };
         return {
           statusCode: 200,
@@ -35,13 +35,13 @@ exports.main = async function(event, context) {
 
       if (widgetName) {
         // GET /name to get info on widget name
-        const data = await S3.getObject({ Bucket: bucketName, Key: widgetName}).promise();
-        var body = data.Body.toString('utf-8');
+        const data = await S3.getObject({ Bucket: bucketName, Key: widgetName }).promise();
+        var body = JSON.stringify(data.Body.toString('utf8'));
 
         return {
           statusCode: 200,
           headers: {},
-          body: JSON.stringify(body)
+          body: JSON.parse(body)
         };
       }
     }
@@ -59,9 +59,9 @@ exports.main = async function(event, context) {
 
       // Create some dummy data to populate object
       const now = new Date();
-      var data = widgetName + " created: " + now;
+      var data = { widgetName: widgetName, created: now };
 
-      var base64data = new Buffer(data, 'binary');
+      var base64data = new Buffer(JSON.stringify(data), 'binary');
 
       await S3.putObject({
         Bucket: bucketName,
@@ -105,7 +105,7 @@ exports.main = async function(event, context) {
       headers: {},
       body: "We only accept GET, POST, and DELETE, not " + method
     };
-  } catch(error) {
+  } catch (error) {
     var body = error.stack || JSON.stringify(error, null, 2);
     return {
       statusCode: 400,

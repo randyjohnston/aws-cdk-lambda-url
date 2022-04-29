@@ -8,7 +8,9 @@ export class WidgetService extends Construct {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
-    const bucket = new s3.Bucket(this, "WidgetStore");
+    const bucket = new s3.Bucket(this, "WidgetStore", {
+        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
+    });
 
     const handler = new lambda.Function(this, "WidgetHandler", {
       runtime: lambda.Runtime.NODEJS_14_X, // So we can use async in widget.js
