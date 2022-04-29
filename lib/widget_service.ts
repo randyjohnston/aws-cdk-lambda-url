@@ -1,15 +1,14 @@
-import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import { CfnOutput } from "aws-cdk-lib";
 
 export class WidgetService extends Construct {
   constructor(scope: Construct, id: string) {
     super(scope, id);
 
     const bucket = new s3.Bucket(this, "WidgetStore", {
-        blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL
     });
 
     const handler = new lambda.Function(this, "WidgetHandler", {
@@ -23,24 +22,10 @@ export class WidgetService extends Construct {
 
     bucket.grantReadWrite(handler); // was: handler.role);
 
-    const api = new apigateway.RestApi(this, "widgets-api", {
-      restApiName: "Widget Service",
-      description: "This service serves widgets."
+    const url = handler.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE
     });
 
-    const widget = api.root.addResource("{id}");
-
-    // Add new widget to bucket with: POST /{id}
-    const postWidgetIntegration = new apigateway.LambdaIntegration(handler);
-
-    // Get a specific widget from bucket with: GET /{id}
-    const getWidgetIntegration = new apigateway.LambdaIntegration(handler);
-
-    // Remove a specific widget from the bucket with: DELETE /{id}
-    const deleteWidgetIntegration = new apigateway.LambdaIntegration(handler);
-
-    widget.addMethod("POST", postWidgetIntegration); // POST /{id}
-    widget.addMethod("GET", getWidgetIntegration); // GET /{id}
-    widget.addMethod("DELETE", deleteWidgetIntegration); // DELETE /{id}
+    new CfnOutput(this, 'URL', { value: url.url });
   }
 }

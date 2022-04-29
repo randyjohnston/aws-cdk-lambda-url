@@ -15,13 +15,12 @@ https://docs.aws.amazon.com/lambda/latest/dg/nodejs-prog-model-handler.html
 */
 exports.main = async function (event, context) {
   try {
-    var method = event.httpMethod;
-    // Get name, if present
-    var widgetName = event.path.startsWith('/') ? event.path.substring(1) : event.path;
+    var method = event.requestContext.http.method;    // Get name, if present
+    var widgetName = event.rawPath.startsWith('/') ? event.rawPath.substring(1) : event.rawPath;
 
     if (method === "GET") {
       // GET / to get the names of all widgets
-      if (event.path === "/") {
+      if (event.rawPath === "/") {
         const data = await S3.listObjectsV2({ Bucket: bucketName }).promise();
         var body = {
           widgets: data.Contents.map(function (e) { return e.Key })
